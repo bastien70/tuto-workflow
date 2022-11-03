@@ -1,0 +1,46 @@
+framework:
+    workflows:
+        toy_request:
+            type: 'workflow' #type de workflow
+            audit_trail:
+                enabled: true
+            marking_store:
+                type: 'method'
+                property: 'status' # Mappé au champs status
+            supports:
+                - App\Entity\ToyRequest # de l'entité ToyRequest
+            initial_marking: request # valeur de base par défaut
+            places:
+                - request # les différents états
+                - dad_validation_pending
+                - dad_ok
+                - mum_validation_pending
+                - mum_ok
+                - order
+                - ordered
+                - received
+
+            transitions:
+                to_pending:
+                    from: request
+                    to:   [dad_validation_pending, mum_validation_pending] #on part de request et on va vers dad_validation_pending ou mum_validation_pending
+                to_dad_ok:
+                    guard: "is_granted('ROLE_DAD')" # à condition d'être authentifié en ROLE_DAD
+                    from: dad_validation_pending # on part de dad_validation_pending
+                    to: dad_ok # pour arriver vers dad_ok
+                to_mum_ok:
+                    guard: "is_granted('ROLE_MUM')"
+                    from: mum_validation_pending
+                    to: mum_ok
+                to_order:
+                    guard: "is_granted('ROLE_PARENT')"
+                    from: [dad_ok, mum_ok] # si les 2 parents ont validé, on peut passer en état order
+                    to:   order
+                to_ordered:
+                    guard: "is_granted('ROLE_PARENT')"
+                    from: order
+                    to:   ordered
+                to_received:
+                    guard: "is_granted('ROLE_PARENT')"
+                    from: ordered
+                    to:   received

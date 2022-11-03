@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+    maildev:
+        desc: Launch Maildev
+        cmds:
+            - maildev --hide-extensions STARTTLS
+
+    workflow:
+        desc: Dump workflow
+        cmds:
+            - php bin/console workflow:dump toy_request | dot -Tpng -o graph.png
